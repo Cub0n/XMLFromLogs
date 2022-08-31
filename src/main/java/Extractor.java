@@ -8,6 +8,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
+
 public final class Extractor {
 
 	private static final String BEGIN_TAG = "<soap:Envelope>";
@@ -19,6 +21,36 @@ public final class Extractor {
 	private static ExecutorService executor = null;
 
 	private static int counter = 0;
+
+	private static StringBuilder strBuilder = null;
+
+	/**
+	 * Lond descriptoion ....
+	 *
+	 * @param input
+	 * @param name
+	 */
+	private static void extractXML(final String input, final String name) {
+
+		final int openStringPos = StringUtils.indexOf(input, BEGIN_TAG);
+
+		final int endStringPos = StringUtils.indexOf(input, END_TAG);
+
+		if ((strBuilder == null) && (openStringPos >= 0) && (endStringPos >= 0)) {
+			writeOut(StringUtils.substring(input, openStringPos, endStringPos + END_TAG_LENGTH), name);
+			extractXML(StringUtils.substring(input, (endStringPos + END_TAG_LENGTH)), name);
+		} else if ((strBuilder == null) && (openStringPos >= 0) && (endStringPos < 0)) {
+			strBuilder = new StringBuilder(input.substring(openStringPos));
+		} else if ((strBuilder != null) && (endStringPos >= 0)
+				&& ((openStringPos < 0) || ((openStringPos >= 0) && (endStringPos < openStringPos)))) {
+			strBuilder.append(StringUtils.substring(input, 0, endStringPos + END_TAG_LENGTH));
+			writeOut(strBuilder.toString(), name);
+			strBuilder = null;
+			extractXML(StringUtils.substring(input, (endStringPos + END_TAG_LENGTH)), name);
+		} else if ((strBuilder != null) && (openStringPos < 0) && (endStringPos < 0)) {
+			strBuilder.append(input);
+		}
+	}
 
 	/**
 	 * Function for finding XML's in a file.
@@ -41,25 +73,9 @@ public final class Extractor {
 
 		try (BufferedReader br = Files.newBufferedReader(file.toPath(), Charset.defaultCharset())) {
 
-			StringBuilder strBuilder = null;
-
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				final int openStringPos = line.indexOf(BEGIN_TAG);
-
-				final int endStringPos = line.indexOf(END_TAG);
-
-				if ((strBuilder == null) && (openStringPos >= 0) && (endStringPos >= 0)) {
-					writeOut(line.substring(openStringPos, endStringPos + END_TAG_LENGTH), name);
-				} else if ((strBuilder == null) && (openStringPos >= 0) && (endStringPos < 0)) {
-					strBuilder = new StringBuilder(line.substring(openStringPos));
-				} else if ((strBuilder != null) && (openStringPos < 0) && (endStringPos >= 0)) {
-					strBuilder.append(line.substring(0, endStringPos + END_TAG_LENGTH));
-					writeOut(strBuilder.toString(), name);
-					strBuilder = null;
-				} else if ((strBuilder != null) && (openStringPos < 0) && (endStringPos < 0)) {
-					strBuilder.append(line);
-				}
+				extractXML(line, name);
 			}
 		} finally {
 			executor.shutdown();
@@ -76,9 +92,5 @@ public final class Extractor {
 	private static void writeOut(final String xml, final String name) {
 		counter++;
 		executor.execute(new FileProcessor(xml, name + counter));
-	}
-
-	public Extractor() {
-		//
 	}
 }
