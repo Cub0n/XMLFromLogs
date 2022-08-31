@@ -20,18 +20,17 @@ public final class Extractor {
 
 	private static int counter = 0;
 
-	public Extractor() {
-		// 
-	}
-
 	/**
 	 * Function for finding XML's in a file.
-	 * 
-	 * Reading file line by line is recommended, especially when the file is huge. (NOT using Files.readAllLines(...) or
-	 * IOUtils.readLines(...)). This should avoid huge memory allocation during reading.
-	 * 
-	 * Lazy loading with stream of Strings is also possible via Files.lines(...)
-	 * 
+	 *
+	 * Reading file line by line is recommended, especially when the file is huge.
+	 * (NOT using {@link Files#readAllLines(java.nio.file.Path)} or
+	 * IOUtils.readLines(...)). This should avoid huge memory allocation during
+	 * reading.
+	 *
+	 * Lazy loading with stream of Strings is also possible
+	 * {@link Files#lines(java.nio.file.Path)}
+	 *
 	 * @param file
 	 * @param name
 	 * @throws IOException
@@ -52,26 +51,21 @@ public final class Extractor {
 
 				if ((strBuilder == null) && (openStringPos >= 0) && (endStringPos >= 0)) {
 					writeOut(line.substring(openStringPos, endStringPos + END_TAG_LENGTH), name);
-				}
-				else if ((strBuilder == null) && (openStringPos >= 0) && (endStringPos < 0)) {
+				} else if ((strBuilder == null) && (openStringPos >= 0) && (endStringPos < 0)) {
 					strBuilder = new StringBuilder(line.substring(openStringPos));
-				}
-				else if ((strBuilder != null) && (openStringPos < 0) && (endStringPos >= 0)) {
+				} else if ((strBuilder != null) && (openStringPos < 0) && (endStringPos >= 0)) {
 					strBuilder.append(line.substring(0, endStringPos + END_TAG_LENGTH));
 					writeOut(strBuilder.toString(), name);
 					strBuilder = null;
-				}
-				else if ((strBuilder != null) && (openStringPos < 0) && (endStringPos < 0)) {
+				} else if ((strBuilder != null) && (openStringPos < 0) && (endStringPos < 0)) {
 					strBuilder.append(line);
 				}
 			}
-		}
-		finally {
+		} finally {
 			executor.shutdown();
 			try {
 				executor.awaitTermination(120, TimeUnit.SECONDS);
-			}
-			catch (final InterruptedException exception) {
+			} catch (final InterruptedException exception) {
 				// Restore interrupted state...
 				Thread.currentThread().interrupt();
 				executor.shutdownNow();
@@ -82,5 +76,9 @@ public final class Extractor {
 	private static void writeOut(final String xml, final String name) {
 		counter++;
 		executor.execute(new FileProcessor(xml, name + counter));
+	}
+
+	public Extractor() {
+		//
 	}
 }
