@@ -12,17 +12,11 @@
 		<maven.compiler.source>11</maven.compiler.source>
 
 		<!-- Dependency version -->
-		<commons.io.version>2.11.0</commons.io.version>
 		<commons.lang3.version>3.12.0</commons.lang3.version>
 		<junit.jupiter.version>5.9.0</junit.jupiter.version>
 	</properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>${commons.io.version}</version>
-		</dependency>
+	<dependencies>		
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
