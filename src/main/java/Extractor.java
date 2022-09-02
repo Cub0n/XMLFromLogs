@@ -105,8 +105,6 @@ public final class Extractor {
 	 *
 	 * @param input
 	 *            - Stringline
-	 * @param name
-	 *            - Name of the outputFile
 	 */
 	private static void extractXML(final String input) {
 
